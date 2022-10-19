@@ -1,0 +1,5 @@
+#	192.168.1.123	NetAddress1	# 注释，无效映射
+
++	43.111.123.123	Server	.On.Cloud	# 自动在 hosts 中添加该映射
+
+-	11.222.111.222	whatever	# 自动在 hosts 中删除该映射
