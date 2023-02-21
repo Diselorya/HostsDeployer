@@ -15,8 +15,6 @@ namespace HostsDeployer
         public string Comments { get; set; } = null;
         public bool IsError { get; set; } = false;
 
-        public string Id => this.Name + ":" + this.Address;
-
         public static string Pattern { get; } = @"^(\s*#\s*){0,1}(\S+)\s+(\S+)\s*(#\s+(.*)){0,1}$";
 
         public LcHost(string name, string address, bool enable = true, string comments = null)
