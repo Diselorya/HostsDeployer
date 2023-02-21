@@ -30,8 +30,14 @@ namespace HostsDeployer
                 LcHostDeployer deployer = new LcHostDeployer();
                 if (deployer.Apply())
                     Console.WriteLine(deployer);
-                else Console.WriteLine("hosts 无改动。");
+                else Console.WriteLine("Hosts 无改动。");
 
+                LcHostDeployerFromExcel deployerExcel = new LcHostDeployerFromExcel();
+                if (deployerExcel.Apply())
+                    Console.WriteLine(deployerExcel);
+                else Console.WriteLine("Hosts 无改动。");
+
+                Console.WriteLine("Hosts 更新完成，按任意键结束...");
                 Console.ReadKey();
             }
             else

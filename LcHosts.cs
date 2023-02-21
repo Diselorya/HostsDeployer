@@ -18,19 +18,42 @@ namespace HostsDeployer
         public static string ThisDirectory { get; set; } = AppDomain.CurrentDomain.BaseDirectory;
         public static string BackupDirectory { get; set; } = Path.Combine(LcHosts.ThisDirectory, "Backup");
 
-        public string Directory { get; set; } = LcHosts.SystemPath;
-        public string Address { get; set; } = LcHosts.SystemAddress;
+        public virtual string Directory { get; set; } = LcHosts.SystemPath;
+        public virtual string Address { get; set; } = LcHosts.SystemAddress;
+
+        public int Added { get; protected set; } = 0;
+        public int Removed { get; protected set; } = 0;
+        public int Modified { get; protected set; } = 0;
+
+        public StringBuilder Log { get; protected set; } = new StringBuilder();
         #endregion
 
         #region 数据
         public List<string> Lines { get; protected set; } = new List<string>();
-        public string Text => this.Lines is null ? "" : string.Join("\n", this.Lines).Replace("\n\n\n", "\n\n");
+        public string Text => this.Lines is null ? "" : string.Join(Environment.NewLine, this.Lines)
+            .Replace(Environment.NewLine + Environment.NewLine + Environment.NewLine, Environment.NewLine + Environment.NewLine);
 
         protected Dictionary<int, LcHost> m_OriHostsPos = new Dictionary<int, LcHost>();
+
+        // 实际上要区分 host 是新增还是删除或注释，所以这个不做区分的 HostsNames 不大用得上
         public Dictionary<string, List<string>> HostsNames = new Dictionary<string, List<string>>();
         #endregion
 
         #region 加载和构建
+        public virtual LcHosts Reset()
+        {
+            this.Directory = LcHosts.SystemPath;
+            this.Address = LcHosts.SystemAddress;
+            this.Added = 0;
+            this.Removed = 0;
+            this.Modified = 0;
+
+            if (this.Log is null) this.Log = new StringBuilder();
+            else this.Log.Clear();
+
+            return this;
+        }
+
         public LcHosts()
         {
             this.Load();
@@ -105,6 +128,7 @@ namespace HostsDeployer
         protected bool LoadHost(int lineNumber, string text) => this.LoadHost(lineNumber, new LcHost(text));
         protected bool LoadHost(int lineNumber, string name, string address, bool enable = true, string comments = null)
             => this.LoadHost(lineNumber, new LcHost(name, address, enable, comments));
+        // 实际上要区分 host 是新增还是删除或注释，所以这个不做区分的 HostsNames 不大用得上
         protected virtual bool LoadHost(int lineNumber, LcHost host)
         {
             if (host is null || host.IsError) return false;
@@ -127,7 +151,11 @@ namespace HostsDeployer
 
             // 只允许在文件末尾追加
             if (lineNumber < this.Lines.Count) lineNumber = this.Lines.Count + 1;
+
+            host.Comments += (String.IsNullOrEmpty(host.Comments) ? "" : "\t") + "Added by HostsDeployer on " + DateTime.Now;
             this.Lines.Add(host.ToString());
+            this.Added++;
+            this.Log.Append("+ 新增：" + host).AppendLine();
             return this.LoadHost(lineNumber, host);
         }
 
@@ -172,7 +200,10 @@ namespace HostsDeployer
                 if (string.IsNullOrEmpty(host.Name)) host.Name = oriHost.Name;
                 if (string.IsNullOrEmpty(host.Address)) host.Address = oriHost.Address;
                 if (string.IsNullOrEmpty(host.Comments)) host.Comments = oriHost.Comments;
+                host.Comments += (String.IsNullOrEmpty(host.Comments) ? "" : "\t") + "Modified by HostsDeployer on " + DateTime.Now;
                 this.Lines[pos] = host.ToString();
+                this.Modified++;
+                this.Log.Append("· 修改：" + oriHost + " → " + host).AppendLine();
                 this.LoadHost(pos, host);
                 return pos;
             }
@@ -189,7 +220,9 @@ namespace HostsDeployer
             if(pos < 0) return -1;
             else
             {
-                this.Lines[pos] = "";
+                this.Lines.RemoveAt(pos);
+                this.Removed++;
+                this.Log.Append("- 删除：" + host).AppendLine();
                 this.Load(this.Lines);
                 return pos;
             }
@@ -214,6 +247,6 @@ namespace HostsDeployer
                 sb.Append(m_OriHostsPos[pos]).AppendLine();
             }
             return sb.ToString();
-        }
+        }        
     }
 }
