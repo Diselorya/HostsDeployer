@@ -25,8 +25,8 @@ HostsDeploymentConfig.txt 示例：
  4. 或者编辑配置文件 Hosts 部署配置.xlsx，在里面添加要自动处理的 hosts 映射：
  ```
      工作表【Add】表示要新增的映射
-     工作表【Remove】表示要新增的映射
-     工作表【Add】表示要新增的映射
+     工作表【Remove】表示要删除的映射
+     工作表【Comment】表示要注释掉的映射
      第 1 列为 IP 地址
      第 2 列为域名
      第 3 列为会输出到 hosts 文件中的注释
